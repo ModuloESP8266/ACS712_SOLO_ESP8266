@@ -20,8 +20,15 @@ void setup() {
 void loop() {
 delay(2000);
 Consumo_ACS712() ;
-Serial.print("VPP: ");
- Serial.println(getVPP());
+//Serial.print("VPP: ");
+// Serial.println(getVPP());
+/*
+Voltage = getVPP();
+ VRMS = (Voltage/2.0) *0.707; 
+ AmpsRMS = (VRMS * 1000)/mVperAmp;
+ Serial.print(AmpsRMS-0.04);
+ Serial.println(" Amps RMS");
+*/
 }
 
 
@@ -32,14 +39,10 @@ void Consumo_ACS712() {
   float AmpFinalRMS=0;
   float Voltaje;
  
- Voltaje=TrueRMSMuestras();
- Serial.print("TrueRMSMuestras(): ");Serial.println(Voltaje);
-  
- AmpsRMS=(Voltaje * 1000)/mVperAmp;
+ AmpsRMS=(TrueRMSMuestras() * 1000)/mVperAmp;
  
- Serial.print(" AmpsRMS:");Serial.println(AmpsRMS);
  AmpFinalRMS=AmpsRMS+ajuste;
- Serial.print(" AmpFinalRMS:");Serial.println(AmpFinalRMS);
+// Serial.print(" AmpFinalRMS:");Serial.println(AmpFinalRMS);
 
 
 }
@@ -52,21 +55,23 @@ float TrueRMSMuestras(){
   int Count=0;
   uint32_t start_time = millis();
   
-  while(Count < 40) 
+  while((millis()-start_time) < 40) 
    {   
        Count++;
        readValue = analogRead(A0);
-       conv=readValue/1024.0;
+       conv=(readValue*1.0)/1024.0;
+        //Serial.print("conv:");
+        Serial.println(conv);
        Acumulador=Acumulador+sq(conv);
-      Serial.print("count:");Serial.println(Count);
+    
    }
      suma=Acumulador/Count;
-     Serial.print("Acumulador:");Serial.println(Acumulador);
+   /*  Serial.print("Acumulador:");Serial.println(Acumulador);
      Serial.print("Count:");Serial.println(Count);
-     Serial.print("suma:");Serial.println(suma);
+     Serial.print("suma:");Serial.println(suma);*/
      result=sqrt(suma);
      return result;
-     delay(1);
+     
     }
 
 float getVPP(){
