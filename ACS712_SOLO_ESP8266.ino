@@ -4,11 +4,12 @@ const int Relay_2=5;
 Measuring AC Current Using ACS712
 */
 const int sensorIn = A0;
-int mVperAmp = 37;//185; // use 100 for 20A****66 for 30A **** 185 for 5A
+double mVperAmp = 37.0;//185.0; // use 100 for 20A****66 for 30A **** 185 for 5A
 double Voltage = 0;
 double VRMS = 0;
 double AmpsRMS = 0;
 ////////////////////////////////
+float medida;
 
 void setup() {
   Serial.begin(115200);
@@ -18,20 +19,31 @@ void setup() {
 }
 
 void loop() {
-delay(2000);
-Consumo_ACS712() ;
-//Serial.print("VPP: ");
-// Serial.println(getVPP());
+//delay(2000);
+
+medir();
 /*
+Serial.print("VPP: ");
+Serial.println(getVPP());
+
 Voltage = getVPP();
- VRMS = (Voltage/2.0) *0.707; 
- AmpsRMS = (VRMS * 1000)/mVperAmp;
- Serial.print(AmpsRMS-0.04);
- Serial.println(" Amps RMS");
+VRMS = (Voltage/2.0) *0.707; 
+AmpsRMS = (VRMS * 1000)/mVperAmp;*/
+/*
+Serial.print("Amps RMS: ");Serial.println(AmpsRMS);
+Consumo_ACS712() ;
 */
+//float hola=Prueba();
+//Serial.print("Irms: ");Serial.println(hola/0.037);
 }
 
-
+void medir(){
+  delay(0.1);
+  medida=((analogRead(A0)- 512)*1.0)/1024.0;
+  Serial.println(medida/0.037);
+  
+  
+  }
 
 void Consumo_ACS712() {
  
@@ -39,40 +51,58 @@ void Consumo_ACS712() {
   float AmpFinalRMS=0;
   float Voltaje;
  
- AmpsRMS=(TrueRMSMuestras() * 1000)/mVperAmp;
+ AmpsRMS=TrueRMSMuestras() * 27.027027027;
  
  AmpFinalRMS=AmpsRMS+ajuste;
-// Serial.print(" AmpFinalRMS:");Serial.println(AmpFinalRMS);
+ Serial.print(" AmpFinalRMS:");Serial.println(AmpFinalRMS);
 
 
 }
 
+float Prueba(){
 
-
+ float result=0,conv=0,Acumulador=0,suma=0;
+ int readValue;             //value read from the sensor
+ int Count=0;
+ uint32_t start_time = millis();
+ Serial.print("Start: ");Serial.println(millis()-start_time);
+  while( (millis()-start_time )< 20){   
+    
+     Count++;
+     readValue = analogRead(A0)- 510;
+ //    Serial.print("readValue:");Serial.println(readValue);
+     conv=(readValue*1.0)/1024.0;
+   //  Serial.print("conv:");Serial.println(conv);
+     Acumulador=Acumulador+sq(conv);  
+    /* Serial.print("Acumulador:");Serial.println(Acumulador);
+      Serial.print("Count: ");Serial.println(Count);
+    */
+     }
+    Serial.print("Finish: ");Serial.println(millis()-start_time);
+   suma=Acumulador/Count;
+   Serial.print("suma:");Serial.println(suma);
+   result=sqrt(suma);
+   Serial.print("result:");Serial.println(result);
+   return result;
+  
+   }
+ 
 float TrueRMSMuestras(){
   float result=0,conv=0,Acumulador=0,suma=0;
-  int readValue;             //value read from the sensor
-  int Count=0;
-  uint32_t start_time = millis();
-  
-  while((millis()-start_time) < 40) 
-   {   
-       Count++;
-       readValue = analogRead(A0);
-       conv=(readValue*1.0)/1024.0;
-        //Serial.print("conv:");
-        Serial.println(conv);
-       Acumulador=Acumulador+sq(conv);
-    
-   }
-     suma=Acumulador/Count;
-   /*  Serial.print("Acumulador:");Serial.println(Acumulador);
-     Serial.print("Count:");Serial.println(Count);
-     Serial.print("suma:");Serial.println(suma);*/
-     result=sqrt(suma);
-     return result;
-     
-    }
+ int readValue;             //value read from the sensor
+ int Count=0;
+ uint32_t start_time = millis();
+   
+  while((millis()-start_time )< 41){   
+     Count++;
+     readValue = analogRead(A0);
+     conv=readValue*0.000976 -.5;
+     Acumulador=Acumulador+sq(conv);  
+     }
+   suma=Acumulador/Count;
+   result=sqrt(suma);
+   return result;
+  }
 
 float getVPP(){
   
@@ -82,7 +112,7 @@ float getVPP(){
   int minValue = 1024;          // store min value here
   
    uint32_t start_time = millis();
-   while((millis()-start_time) < 40) //sample for 1 Sec
+   while((millis()-start_time) < 500) //sample for 1 Sec
    {
        readValue = analogRead(sensorIn);
        // see if you have a new maxValue
